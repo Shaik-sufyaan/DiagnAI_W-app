@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>Welcome, {{ username }}!</h2>
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="card">
+            <h3>Speech to Text</h3>
+            <button id="startRecording" class="btn">Start Recording</button>
+            <div id="recordingStatus"></div>
+            <div id="transcriptionResult"></div>
+        </div>
+
+        <div class="card">
+            <h3>Your Recent Transcriptions</h3>
+            {% if speech_data %}
+                {% for text, additional_data, created_at in speech_data %}
+                    <div class="transcription-item">
+                        <p>{{ text }}</p>
+                        <small>{{ created_at }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No transcriptions yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('startRecording').addEventListener('click', async () => {
+    const status = document.getElementById('recordingStatus');
+    const result = document.getElementById('transcriptionResult');
+    
+    status.textContent = 'Recording...';
+    
+    try {
+        const response = await fetch('/record_speech', {
+            method: 'POST'
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            result.textContent = `Transcription: ${data.text}`;
+        } else {
+            result.textContent = `Error: ${data.error}`;
+        }
+    } catch (error) {
+        result.textContent = `Error: ${error.message}`;
+    } finally {
+        status.textContent = '';
+    }
+});
+</script>
+
+{% endblock %}
